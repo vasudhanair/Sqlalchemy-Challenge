@@ -1,4 +1,5 @@
 import numpy as np
+import datetime as dt
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
@@ -28,3 +29,14 @@ app = Flask(__name__)
 #################################################
 # Flask Routes
 #################################################
+@app.route("/")
+def welcome():
+    """List all available api routes."""
+    return (
+        f"Available Routes:<br/>"
+        f"/api/v1.0/precipitation<br/>"
+        f"/api/v1.0/stations<br/>"
+        f"/api/v1.0/tobs<br/>"
+        f"/api/v1.0/&lt;start&gt;<br/>"
+        f"/api/v1.0/&lt;start&gt;/&lt;end&gt;"
+    )
