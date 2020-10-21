@@ -77,3 +77,96 @@ def stations():
     session.close()
  
     return jsonify(stations)
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    # Get the last date contained in the dataset and date from one year ago
+    last_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    last_year_date = (dt.datetime.strptime(last_date[0],'%Y-%m-%d') \
+                    - dt.timedelta(days=365)).strftime('%Y-%m-%d')
+
+    # Query for the dates and temperature values
+    results =   session.query(Measurement.date, Measurement.tobs).\
+                filter(Measurement.date >= last_year_date).\
+                order_by(Measurement.date).all()
+
+    # Convert to list of dictionaries to jsonify
+    tobs_date_list = []
+
+    for date, tobs in results:
+        new_dict = {}
+        new_dict[date] = tobs
+        tobs_date_list.append(new_dict)
+
+    session.close()
+
+    return jsonify(tobs_date_list)
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    # Get the last date contained in the dataset and date from one year ago
+    last_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    last_year_date = (dt.datetime.strptime(last_date[0],'%Y-%m-%d') \
+                    - dt.timedelta(days=365)).strftime('%Y-%m-%d')
+
+    # Query for the dates and temperature values
+    results =   session.query(Measurement.date, Measurement.tobs).\
+                filter(Measurement.date >= last_year_date).\
+                order_by(Measurement.date).all()
+
+    # Convert to list of dictionaries to jsonify
+    tobs_date_list = []
+
+    for date, tobs in results:
+        new_dict = {}
+        new_dict[date] = tobs
+        tobs_date_list.append(new_dict)
+
+    session.close()
+
+    return jsonify(tobs_date_list)
+
+@app.route("/api/v1.0/<start>/<end>")
+def temp_range_start_end(start,end):
+    """TMIN, TAVG, and TMAX per date for a date range.
+    
+    Args:
+        start (string): A date string in the format %Y-%m-%d
+        end (string): A date string in the format %Y-%m-%d
+        
+    Returns:
+        TMIN, TAVE, and TMAX
+    """
+
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    return_list = []
+
+    results =   session.query(  Measurement.date,\
+                                func.min(Measurement.tobs), \
+                                func.avg(Measurement.tobs), \
+                                func.max(Measurement.tobs)).\
+                        filter(and_(Measurement.date >= start, Measurement.date <= end)).\
+                        group_by(Measurement.date).all()
+
+    for date, min, avg, max in results:
+        new_dict = {}
+        new_dict["Date"] = date
+        new_dict["TMIN"] = min
+        new_dict["TAVG"] = avg
+        new_dict["TMAX"] = max
+        return_list.append(new_dict)
+
+    session.close()    
+
+    return jsonify(return_list)
+
+if __name__ == '__main__':
+    app.run(debug=True)
