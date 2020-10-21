@@ -40,3 +40,24 @@ def welcome():
         f"/api/v1.0/&lt;start&gt;<br/>"
         f"/api/v1.0/&lt;start&gt;/&lt;end&gt;"
     )
+
+@app.route("/api/v1.0/precipitation")
+def precipitation():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    # Query for the dates and precipitation values
+    results =   session.query(Measurement.date, Measurement.prcp).\
+                order_by(Measurement.date).all()
+
+    # Convert to list of dictionaries to jsonify
+    prcp_date_list = []
+
+    for date, prcp in results:
+        new_dict = {}
+        new_dict[date] = prcp
+        prcp_date_list.append(new_dict)
+
+    session.close()
+
+    return jsonify(prcp_date_list)
